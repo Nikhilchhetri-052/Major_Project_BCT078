@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Mirror - Login</title>
+    <link rel="stylesheet" href="styles/main.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons for profile and logout (these styles are now less relevant for this page, but kept for consistency with main.css) -->
+    <style>
+        .nav-icon-link {
+            display: flex;
+            align-items: center;
+        }
+        .nav-icon-link svg {
+            color: var(--light-text);
+            transition: color 0.3s ease;
+            margin-right: 5px; /* Space between icon and text if any */
+        }
+        .nav-icon-link svg:hover {
+            color: var(--primary-purple);
+        }
+        .user-profile-text {
+            color: var(--light-text);
+            font-weight: 500;
+        }
+        .user-profile-text:hover {
+            color: var(--primary-purple);
+        }
+    </style>
+</head>
+<body data-auth-redirect="true"> <!-- Added data-auth-redirect for JS to handle redirection -->
+    <!-- Navigation Bar (Unified Structure) -->
+    <nav class="navbar">
+        <div class="navbar-brand">Interview Mirror</div>
+        <ul class="navbar-links">
+            <li><a href="index.html" class="nav-link">Home</a></li>
+            <li><a href="#" class="nav-link">About</a></li>
+            <li><a href="#" class="nav-link">Contact</a></li>
+            <!-- Removed: History link for logged-in users -->
+
+            <!-- Logged-out options (always shown on this page unless redirected by JS) -->
+            <li class="logged-out-only"><a href="register.html" class="btn nav-btn-primary">Sign Up</a></li>
+            <li class="logged-out-only"><a href="login.html" class="btn nav-btn-secondary active">Log In</a></li>
+
+            <!-- Removed: Logged-in options (user icon and logout button) -->
+        </ul>
+    </nav>
+
+    <main class="container form-page-container">
+        <div class="form-card">
+            <h2>Log In to Your Account</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+                    <div class="error-message" id="emailError"></div>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <div class="error-message" id="passwordError"></div>
+                </div>
+                <button type="submit" class="btn primary-btn full-width-btn">Log In</button>
+            </form>
+            <p class="form-footer">Don't have an account? <a href="register.html">Sign Up here</a></p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <p>&copy; 2024 Interview Mirror. All rights reserved.</p>
+    </footer>
+
+    <script type="module" src="scripts/main.js"></script>
+    <script type="module">
+        import { getAuth, signInWithEmailAndPassword } from 'https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const loginForm = document.getElementById('loginForm');
+
+            loginForm.addEventListener('submit', async function(event) {
+                event.preventDefault();
+
+                const email = document.getElementById('email').value.trim();
+                const password = document.getElementById('password').value;
+
+                document.getElementById('emailError').textContent = '';
+                document.getElementById('passwordError').textContent = '';
+
+                let isValid = true;
+
+                if (!email || !email.includes('@')) {
+                    document.getElementById('emailError').textContent = 'Please enter a valid email address.';
+                    isValid = false;
+                }
+                if (!password || password.length < 6) {
+                    document.getElementById('passwordError').textContent = 'Password must be at least 6 characters long.';
+                    isValid = false;
+                }
+
+                if (!isValid) {
+                    return;
+                }
+
+                try {
+                    const auth = getAuth();
+                    await signInWithEmailAndPassword(auth, email, password);
+                    alert('Login successful!'); // Replace with custom modal
+                    window.location.href = 'homepageafterlogin.html'; // Redirect to new logged-in home page
+                } catch (error) {
+                    let errorMessage = 'Login failed. Invalid email or password.';
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+                        errorMessage = 'Invalid email or password.';
+                    } else if (error.code === 'auth/invalid-email') {
+                        errorMessage = 'Invalid email format.';
+                    }
+                    document.getElementById('passwordError').textContent = errorMessage; // Display error
+                    console.error("Login error:", error);
+                }
+            });
+        });
+    </script>
+</body>
+</html>
